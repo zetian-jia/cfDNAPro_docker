@@ -23,7 +23,7 @@ RUN conda update -n base -c defaults conda && \
 
 # Create conda environment and install R and cfDNAPro
 RUN conda create -n cfdnapro -c conda-forge -y \
-    r-base=4.3.3 r-xml2 r-curl libgdal r::r-libgeos udunits2 
+    r-base=4.3.3 r-xml2 r-curl libgdal r-libgeos udunits2 
 
 # Activate environment by default
 SHELL ["conda", "run", "-n", "cfdnapro", "/bin/bash", "-c"]
