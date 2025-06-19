@@ -2,7 +2,7 @@ FROM ubuntu:22.04
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
-ENV PATH=/opt/conda/envs/cfDNAenv/bin:/opt/conda/bin:$PATH
+ENV PATH=/opt/conda/envs/cfdnapro/bin:/opt/conda/bin:$PATH
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -22,19 +22,27 @@ RUN conda update -n base -c defaults conda && \
     conda config --set channel_priority strict
 
 # Create conda environment and install R and cfDNAPro
-RUN conda create -n cfDNAenv -y \
-    r-base=4.4 \
-    bioconductor-cfdnapro=1.12.0 \
-    r-ggpubr=0.6.0
+RUN conda create -n cfdnapro -c conda-forge -y \
+    r-base=4.3.3 r-xml2 r-curl libgdal r::r-libgeos udunits2 
 
 # Activate environment by default
-SHELL ["conda", "run", "-n", "cfDNAenv", "/bin/bash", "-c"]
+SHELL ["conda", "run", "-n", "cfdnapro", "/bin/bash", "-c"]
 
-RUN echo "source /opt/conda/etc/profile.d/conda.sh && conda activate cfDNAenv" >> /root/.bashrc
+RUN echo "source /opt/conda/etc/profile.d/conda.sh && conda activate cfdnapro" >> /root/.bashrc
 
-# Verify install
-RUN R -e "packageVersion('cfDNAPro')"
+RUN source /opt/conda/etc/profile.d/conda.sh && conda activate cfdnapro && \
+    R -e 'if (!requireNamespace("devtools", quietly = TRUE)) install.packages("devtools", repos = "https://cloud.r-project.org")' && \
+    R -e 'devtools::install_version("Matrix", version = "1.6-5", repos = "https://cloud.r-project.org")' && \
+    R -e 'devtools::install_version("MASS", version = "7.3-58.3", repos = "https://cloud.r-project.org")' && \
+    R -e 'devtools::install_version("units", version = "0.8-2", repos = "https://cloud.r-project.org")' && \
+    R -e 'if (!requireNamespace("pacman", quietly = TRUE)) install.packages("pacman", repos = "https://cloud.r-project.org"); pacman::p_load(xml2, curl, httpuv, shiny, gh, gert, usethis, pkgdown, rcmdcheck, roxygen2, rversions, urlchecker, BiocManager)' && \
+    R -e 'options(timeout=3600); if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager"); BiocManager::install("OrganismDbi")' && \
+    R -e 'options(timeout=3600); pkgs <- c("GenomicAlignments", "rtracklayer", "GenomicFeatures", "BSgenome", "BSgenome.Hsapiens.UCSC.hg38", "BSgenome.Hsapiens.UCSC.hg19", "BSgenome.Hsapiens.NCBI.GRCh38", "Homo.sapiens", "plyranges", "TxDb.Hsapiens.UCSC.hg19.knownGene"); new <- pkgs[!pkgs %in% installed.packages()[,"Package"]]; if(length(new)) BiocManager::install(new)' && \
+    R -e 'pacman::p_load(car, mgcv, pbkrtest, quantreg, lme4, ggplot2, ggrepel, ggsci, cowplot, ggsignif, rstatix, ggpubr, patchwork, ggpattern)' && \
+    R -e 'devtools::install_github("asntech/QDNAseq.hg38@main")' && \
+    R -e 'devtools::install_github("hw538/cfDNAPro", build_vignettes = FALSE, force = TRUE)' && \
+    R -e 'packageVersion("cfDNAPro")'
 
 # Set default command
-CMD ["conda", "run", "-n", "cfDNAenv", "R"]
+CMD ["conda", "run", "-n", "cfdnapro", "R"]
 
