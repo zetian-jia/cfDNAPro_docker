@@ -7,8 +7,6 @@ ENV PATH=/opt/conda/envs/cfdnapro/bin:/opt/conda/bin:$PATH
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates bzip2 libglib2.0-0 libxext6 libsm6 libxrender1 \
-    git less libssl-dev libxml2-dev libfontconfig1-dev libfreetype6-dev \
-    libharfbuzz-dev libfribidi-dev libpng-dev libtiff5-dev libjpeg-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Miniforge (lightweight Conda)
@@ -25,7 +23,13 @@ RUN conda update -n base -c defaults conda && \
 
 # Create conda environment and install R and cfDNAPro
 RUN conda create -n cfdnapro -c conda-forge -y \
-    r-base=4.3.3 r-xml2 r-curl libgdal r-libgeos udunits2 r-devtools
+    r-base=4.3.3 \
+    r-xml2 r-curl r-devtools \
+    libgdal r-libgeos udunits2 \
+    libxml2 openssl \
+    fontconfig freetype libpng jpeg libtiff \
+    harfbuzz fribidi \
+    git
 
 # Activate environment by default
 SHELL ["conda", "run", "-n", "cfdnapro", "/bin/bash", "-c"]
