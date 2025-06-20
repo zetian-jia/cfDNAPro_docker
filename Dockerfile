@@ -1,25 +1,38 @@
-FROM rocker/r-base:4.3.3
+# 基于 micromamba 的官方镜像
+FROM mambaorg/micromamba:latest
 
-ENV DEBIAN_FRONTEND=noninteractive
+# 设置环境变量
+ENV PATH="/opt/conda/bin:${PATH}"
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libxml2-dev libssl-dev libcurl4-openssl-dev git \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# 复制自定义 conda channels 配置
+RUN echo 'channels:
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/bioconda/
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
+auto_activate_base: false
+report_errors: false
+repodata_use_zst: true
+show_channel_urls: true
+' > /root/.condarc
 
-# 安装必要的 R 包
-RUN R -e "install.packages(c('devtools', 'pacman'), repos='https://cloud.r-project.org')"
+# 安装基本依赖和R
+RUN micromamba install -y -n base \
+    r-base=4.3.3 r-devtools make gcc gxx gfortran pkg-config libcurl libxml2 openssl unzip zlib libpng libjpeg-turbo libtiff readline xorg-libx11 xorg-libxt tzdata libblas liblapack udunits2 && \
+    micromamba clean --all --yes
 
-RUN R -e "devtools::install_version('Matrix', version = '1.6-5', repos = 'https://cloud.r-project.org')"
-RUN R -e "devtools::install_version('MASS', version = '7.3-58.3', repos = 'https://cloud.r-project.org')"
-RUN R -e "devtools::install_version('units', version = '0.8-2', repos = 'https://cloud.r-project.org')"
+# 通过 micromamba run 执行R安装包命令
+RUN micromamba run -n base R -e "install.packages(c('devtools', 'pacman'), repos='https://cloud.r-project.org')" 
+RUN micromamba run -n base R -e "devtools::install_version('Matrix', version = '1.6-5', repos = 'https://cloud.r-project.org')"
+RUN micromamba run -n base R -e "devtools::install_version('MASS', version = '7.3-58.3', repos = 'https://cloud.r-project.org')"
+RUN micromamba run -n base R -e "devtools::install_version('units', version = '0.8-2', repos = 'https://cloud.r-project.org')"
+RUN micromamba run -n base R -e "pacman::p_load(xml2, curl, httpuv, shiny, gh, gert, usethis, pkgdown, rcmdcheck, roxygen2, rversions, urlchecker, BiocManager)"
+RUN micromamba run -n base R -e "options(timeout=3600); BiocManager::install(c('OrganismDbi', 'GenomicAlignments', 'rtracklayer', 'GenomicFeatures', 'BSgenome', 'BSgenome.Hsapiens.UCSC.hg38', 'BSgenome.Hsapiens.UCSC.hg19', 'BSgenome.Hsapiens.NCBI.GRCh38', 'Homo.sapiens', 'plyranges', 'TxDb.Hsapiens.UCSC.hg19.knownGene'))"
+RUN micromamba run -n base R -e "pacman::p_load(car, mgcv, pbkrtest, quantreg, lme4, ggplot2, ggrepel, ggsci, cowplot, ggsignif, rstatix, ggpubr, patchwork, ggpattern)"
+RUN micromamba run -n base R -e "devtools::install_github('asntech/QDNAseq.hg38@main')"
+RUN micromamba run -n base R -e "devtools::install_github('hw538/cfDNAPro', build_vignettes = FALSE, force = TRUE)"
+RUN micromamba run -n base R -e "packageVersion('cfDNAPro')"
 
-RUN R -e "pacman::p_load(xml2, curl, httpuv, shiny, gh, gert, usethis, pkgdown, rcmdcheck, roxygen2, rversions, urlchecker, BiocManager)"
+# 默认执行bash，方便调试
+CMD ["/bin/bash"]
 
-RUN R -e "options(timeout=3600); BiocManager::install(c('OrganismDbi', 'GenomicAlignments', 'rtracklayer', 'GenomicFeatures', 'BSgenome', 'BSgenome.Hsapiens.UCSC.hg38', 'BSgenome.Hsapiens.UCSC.hg19', 'BSgenome.Hsapiens.NCBI.GRCh38', 'Homo.sapiens', 'plyranges', 'TxDb.Hsapiens.UCSC.hg19.knownGene'))"
-
-RUN R -e "pacman::p_load(car, mgcv, pbkrtest, quantreg, lme4, ggplot2, ggrepel, ggsci, cowplot, ggsignif, rstatix, ggpubr, patchwork, ggpattern)"
-
-RUN R -e "devtools::install_github('asntech/QDNAseq.hg38@main')"
-RUN R -e "devtools::install_github('hw538/cfDNAPro', build_vignettes = FALSE, force = TRUE)"
-
-CMD ["R"]
