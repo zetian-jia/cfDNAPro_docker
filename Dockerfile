@@ -9,7 +9,7 @@ COPY .condarc /root/.condarc
 
 # 安装基本依赖和R
 RUN micromamba install -y -n base \
-    r-base=4.3.3 r-devtools make gcc gxx gfortran pkg-config libcurl libxml2 openssl unzip zlib libpng libjpeg-turbo libtiff readline xorg-libx11 xorg-libxt tzdata libblas liblapack udunits2 && \
+    r-base=4.3.3 r-devtools make gcc gxx gfortran pkg-config libcurl libxml2 openssl unzip zlib libpng libjpeg-turbo libtiff readline xorg-libx11 xorg-libxt tzdata libblas liblapack udunits2 cmake libxml libxml2-devel libxml2-dev && \
     micromamba clean --all --yes
 
 # 通过 micromamba run 执行R安装包命令
