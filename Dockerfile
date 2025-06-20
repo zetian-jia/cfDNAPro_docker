@@ -5,16 +5,7 @@ FROM mambaorg/micromamba:latest
 ENV PATH="/opt/conda/bin:${PATH}"
 
 # 复制自定义 conda channels 配置
-RUN echo 'channels:
-  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/bioconda/
-  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
-  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
-  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
-auto_activate_base: false
-report_errors: false
-repodata_use_zst: true
-show_channel_urls: true
-' > /root/.condarc
+COPY .condarc /root/.condarc
 
 # 安装基本依赖和R
 RUN micromamba install -y -n base \
