@@ -10,7 +10,7 @@ COPY .condarc /root/.condarc
 # 安装基本依赖和R
 RUN micromamba install -y -n base \
     -c conda-forge -c bioconda \
-    r-base=4.3.3 r-devtools bioconductor-rtracklayer=1.62.0 make gcc gxx gfortran pkg-config libcurl libxml2 openssl unzip zlib libpng libjpeg-turbo libtiff readline xorg-libx11 xorg-libxt tzdata libblas liblapack udunits2 cmake libxml2-devel-conda-x86_64  xz && \
+    r-base=4.3.3 r-devtools bioconductor-rtracklayer=1.62.0 r-s2=1.1.6 make gcc gxx gfortran pkg-config libcurl libxml2 openssl unzip zlib libpng libjpeg-turbo libtiff readline xorg-libx11 xorg-libxt tzdata libblas liblapack udunits2 cmake libxml2-devel-conda-x86_64  xz && \
     micromamba clean --all --yes
 
 # 通过 micromamba run 执行R安装包命令
